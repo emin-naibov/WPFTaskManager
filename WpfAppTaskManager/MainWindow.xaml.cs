@@ -23,6 +23,7 @@ namespace WpfAppTaskManager
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
         }
     }
 }

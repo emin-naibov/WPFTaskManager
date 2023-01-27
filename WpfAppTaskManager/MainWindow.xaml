@@ -4,9 +4,32 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfAppTaskManager"
+         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <DockPanel>
+        <Label DockPanel.Dock="Top" FontSize="25" Content="Task Manager:" HorizontalAlignment="Center"/>
+        <Button DockPanel.Dock="Bottom" Height="25px" Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedItem, ElementName=TasksListBox}">End Task</Button>
+        <ListBox SelectedItem="{Binding SelectedTask}" ItemsSource="{Binding Tasks}" x:Name="TasksListBox">
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseDoubleClick">
+                    <b:InvokeCommandAction 
+                        Command="{Binding DeleteCommand}"
+                        CommandParameter="{Binding SelectedItem, ElementName=TasksListBox}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <UniformGrid Columns="2">
+                        
+                        <TextBlock Width="400px" Text="{Binding ID,StringFormat={}{0}:}"/>
+                        <TextBlock Text="{Binding Name}"/>
+                    </UniformGrid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            
+        </ListBox>
+        
 
-    </Grid>
+    </DockPanel>
 </Window>
