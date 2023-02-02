@@ -66,7 +66,7 @@ namespace WpfAppTaskManager
                 client.Connect(endPoint);
                 //Connected = true;
 
-                 var writer = new StreamWriter(client.GetStream());
+                var writer = new StreamWriter(client.GetStream());
                 writer.AutoFlush = true;
 
                 var msg = new Message { Type = "Connect",Data=Username};
@@ -76,13 +76,6 @@ namespace WpfAppTaskManager
                 reader = new StreamReader(client.GetStream());
 
                 RecieveMessages();
-
-                //RecieveMessages();
-                //foreach (var item in Process.GetProcesses())
-                //{
-                //    MyTask myTask = new MyTask { ID = item.Id, Name = item.ProcessName };
-                //    Tasks.Add(myTask);
-                //}
             });
             
 
@@ -118,51 +111,23 @@ namespace WpfAppTaskManager
         );
         private void RecieveMessages()
         {
-            //Task.Run(() =>
-            //{
-                //while (true)
-                //{
-            //MessageBox.Show(reader.ReadLine());
-            var json = reader.ReadLine();
-
-            //var msg = reader.ReadLine();
-            //MyTask myTask =  new MyTask {JsonConvert.DeserializeObject<MyTask>(msg)};
-
-            //Application.Current.Dispatcher.Invoke(() =>
-            //{
-            //Tasks=JsonSerializer.Deserialize<List<MyTask>>(json);
-            Tasks = JsonConvert.DeserializeObject<List<MyTask>>(json);
-            MessageBox.Show(Tasks[0].Name);
-                        //Tasks.Add(msg);
-            //});
-            //}
-            //});
+            Task.Run(() =>
+            {
+                var json = reader.ReadLine();
+                Tasks = JsonConvert.DeserializeObject<List<MyTask>>(json);
+                MessageBox.Show(Tasks[0].Name);
+            });
         }
 
-        //private RelayCommand _deleteCommand;
-        //public RelayCommand DeleteCommand => _deleteCommand ??= new RelayCommand(
-        //    ()=>
-        //    {
-        //        if(SelectedTask!=null)
-        //        {
-        //            Tasks.Remove(SelectedTask);
-        //            MessageBox.Show(SelectedTask.Name);
-
-        //            //var process = Process.GetProcessesByName(SelectedTask.Name);
-        //            //foreach (var item in process)
-        //            //{
-        //            //    item.Kill();
-
-        //            //}
-
-        //        }
-
-        //        else
-        //        {
-        //            MessageBox.Show("Please select the task!");
-        //        }
-        //    }
-        //);
+        
     }
 
 }
+
+
+//var msg = reader.ReadLine();
+//MyTask myTask =  new MyTask {JsonConvert.DeserializeObject<MyTask>(msg)};
+
+//Application.Current.Dispatcher.Invoke(() =>
+//{
+//Tasks=JsonSerializer.Deserialize<List<MyTask>>(json);
