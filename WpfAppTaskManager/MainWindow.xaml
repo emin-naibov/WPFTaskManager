@@ -9,8 +9,19 @@
         Title="MainWindow" Height="450" Width="800">
     <DockPanel>
         <Label DockPanel.Dock="Top" FontSize="25" Content="Task Manager:" HorizontalAlignment="Center"/>
-        <Button DockPanel.Dock="Bottom" Height="25px" Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedItem, ElementName=TasksListBox}">End Task</Button>
-        <ListBox SelectedItem="{Binding SelectedTask}" ItemsSource="{Binding Tasks}" x:Name="TasksListBox">
+        <Grid DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Task Name:"/>
+            <TextBox  Text="{Binding NewTask,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Column="1"/>
+            <Button Grid.Column="2" Command="{Binding SendTaskCommand}">AddTask</Button>
+            
+
+        </Grid>
+        <ListBox MaxWidth="800" SelectedItem="{Binding SelectedTask}" ItemsSource="{Binding Tasks}" x:Name="TasksListBox">
             <b:Interaction.Triggers>
                 <b:EventTrigger EventName="MouseDoubleClick">
                     <b:InvokeCommandAction 

@@ -28,11 +28,14 @@ namespace WpfAppTaskManager
     private List<MyTask> tasks;
     public List<MyTask> Tasks { get => tasks; set => Set(ref tasks, value); }
 
-        TcpClient client;
         StreamWriter writer;
         StreamReader reader;
         private string username = "Gleb";
         public string Username { get => username; set => Set(ref username, value); }
+
+        private string _newTask;
+        public string NewTask { get => _newTask; set => Set(ref _newTask, value); }
+
 
         private string ip = "192.168.56.1";
         public string Ip { get => ip; set => Set(ref ip, value); }
@@ -57,29 +60,41 @@ namespace WpfAppTaskManager
 
     private void InitMethod()
         {
-            Task.Run(() =>
-            {
-
                 var client = new TcpClient();
 
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(Ip), 8080);
                 client.Connect(endPoint);
-                //Connected = true;
-
-                var writer = new StreamWriter(client.GetStream());
+                writer = new StreamWriter(client.GetStream());
                 writer.AutoFlush = true;
-
-                var msg = new Message { Type = "Connect",Data=Username};
-                var json = JsonConvert.SerializeObject(msg);
-                writer.WriteLine(json);
-
-                reader = new StreamReader(client.GetStream());
-
-                RecieveMessages();
-            });
+                 Task.Run(() =>
+                 {
+                       
+                        var msg = new Message { Type = "Connect",Data=Username};
+                        var json = JsonConvert.SerializeObject(msg);
+                        writer.WriteLine(json);
+                       
+                        reader = new StreamReader(client.GetStream());
+                       
+                       
+                        RecieveMessages();
+                 });
             
-
         }
+
+
+        private RelayCommand _sendCommand;
+        public RelayCommand SendTaskCommand => _sendCommand ??= new RelayCommand(
+            () =>
+            {
+                Task.Run(() =>
+                {
+                    var msg = new Message { Type = "NewTask", Data = NewTask };
+                    Sender(msg);
+                });
+                    
+                    
+            }
+        );
 
         private RelayCommand<MyTask> _deletecommand;
         public RelayCommand<MyTask> DeleteCommand => _deletecommand ??= new RelayCommand<MyTask>(
@@ -89,17 +104,9 @@ namespace WpfAppTaskManager
                 {
                     if (param != null)
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
-                           {
-                               Tasks.Remove(param);
-                           });
-                        //Tasks.Remove(param);
-                        var process = Process.GetProcessesByName(param.Name);
-                        foreach (var item in process)
-                        {
-                            item.Kill();
-
-                        }
+                        var msg = new Message { Type = "DeleteTask", Data = param.Name };
+                        Sender(msg);
+                      
                     }
                     else
                     {
@@ -109,13 +116,37 @@ namespace WpfAppTaskManager
                 });
             }
         );
+        private void Sender(Message message)
+        {
+            var json = JsonConvert.SerializeObject(message);
+            writer.WriteLine(json);
+            writer.AutoFlush = true;
+        }
         private void RecieveMessages()
         {
+
             Task.Run(() =>
             {
-                var json = reader.ReadLine();
-                Tasks = JsonConvert.DeserializeObject<List<MyTask>>(json);
-                MessageBox.Show(Tasks[0].Name);
+                while (true)
+              {
+                  try
+                   {
+
+                          var json = reader.ReadLine();
+                          //MessageBox.Show(json);
+                          Application.Current.Dispatcher.Invoke(() =>
+                          {
+                             Tasks = JsonConvert.DeserializeObject<List<MyTask>>(json);
+                             //MessageBox.Show(Tasks[0].Name);
+                          });
+                    }
+                  catch (Exception ex)
+                  {
+                      MessageBox.Show(ex.Message);
+                      throw;
+                  }
+               }
+                
             });
         }
 
@@ -125,9 +156,4 @@ namespace WpfAppTaskManager
 }
 
 
-//var msg = reader.ReadLine();
-//MyTask myTask =  new MyTask {JsonConvert.DeserializeObject<MyTask>(msg)};
 
-//Application.Current.Dispatcher.Invoke(() =>
-//{
-//Tasks=JsonSerializer.Deserialize<List<MyTask>>(json);

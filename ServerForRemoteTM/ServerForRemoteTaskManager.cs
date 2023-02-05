@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServerForRemoteTM
@@ -64,6 +65,8 @@ namespace ServerForRemoteTM
                                 switch (msg.Type)
                                 {
                                     case "Connect":
+                                  
+
                                         Console.WriteLine($"User {msg.Data} connected!");
                                         clients.Add(new User
                                         {
@@ -75,17 +78,21 @@ namespace ServerForRemoteTM
 
                                         BroadcastMessage();
                                         break;
+                                    
 
-                                    //case "Message":
-                                    //    Console.WriteLine($"{username}: {msg.Data}");
-                                    //    BroadcastMessage(json);
-                                    //    break;
+                                    case "NewTask":
+                                        Console.WriteLine(msg.Data);
+                                        Process.Start(msg.Data);
+                                        break;
 
-                                    //case "Disconnect":
-                                    //    clients.Remove(clients.FirstOrDefault(x => x.Username == msg.Data));
-                                    //    Console.WriteLine($"User {msg.Data} disconnected!");
-                                    //    connected = false;
-                                    //    break;
+                                    case "DeleteTask":
+                                        var process = Process.GetProcessesByName(msg.Data);
+                                        foreach (var item in process)
+                                        {
+                                            item.Kill();
+
+                                        }
+                                        break;
 
                                     default:
                                         break;
@@ -106,18 +113,33 @@ namespace ServerForRemoteTM
         }
         static void BroadcastMessage()
         {
-            foreach (var item in Process.GetProcesses())
+            Task.Run(() =>
             {
-                MyTask myTask = new MyTask { ID = item.Id, Name = item.ProcessName };
-                Tasks.Add(myTask);
-            }
-            var json=JsonConvert.SerializeObject(Tasks);
-            //Console.WriteLine(json);
-            Console.WriteLine(clients[0].Username);
+                while (true)
+                {
 
+                Thread.Sleep(300);
+                foreach (var item in Process.GetProcesses())
+                {
+                    MyTask myTask = new MyTask { ID = item.Id, Name = item.ProcessName };
+                    Tasks.Add(myTask);
+                    //Console.WriteLine(item.ProcessName);
+                }
+                var json=JsonConvert.SerializeObject(Tasks);
+                //Console.WriteLine(json);
+                Console.WriteLine(clients[0].Username);
+               
+               
+                clients[0].Writer.WriteLine(json);
+                Tasks.Clear();
+                //clients[0].Writer.Flush();
+                }
 
-            clients[0].Writer.WriteLine(json);
-            clients[0].Writer.Flush();
+            });
+
+          
+
+            
             
         }
 
